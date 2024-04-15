@@ -20,7 +20,7 @@ class Blastee:
         self.blasteeIp = '198.168.200.1'
         self.blasterIp = blasterIp
         self.num = int(num)
-        self.context = b''
+        self.contexts = []
         # self.wait_seq = 0
         # self.last_AKA = None
         self.recv_pkt = []
@@ -33,7 +33,7 @@ class Blastee:
         length = int.from_bytes(raw_bytes[4:6], "big")
         context_seg = raw_bytes[6:]
         
-        self.context += context_seg
+        # self.context += context_seg
         
         print(f"seq: {seqnum} and length: {length}")
         
@@ -42,6 +42,7 @@ class Blastee:
             
         else :
             self.recv_pkt += [seqnum]
+            self.contexts += [(seqnum, context_seg)]
             pkt = Ethernet() + IPv4() + UDP()
             pkt[0].ethertype = EtherType.IPv4
             pkt[0].src = '20:00:00:00:00:01'
@@ -59,7 +60,9 @@ class Blastee:
         
         if len(self.recv_pkt) == self.num:
             print("whole context: ")
-            print(self.context.decode("utf-8"))
+            self.contexts.sort(key=(lambda t: t[0]))
+            for t in self.contexts:
+                print(t[1].decode(),end='')
             self.shutdown()
 
     def start(self):

@@ -48,7 +48,7 @@ class Blaster:
         self.end_time = 0
         self.send_next = True
         self.sent_length = 0
-        
+        self.retransNum = 0
     def handle_packet(self, recv: switchyard.llnetbase.ReceivedPacket):
         _, fromIface, packet = recv
         # print(f"I got a packet from {fromIface}")
@@ -98,16 +98,20 @@ class Blaster:
                 self.send_next = False
             else:
                 log_debug("retransmission!")
-                stat, seq, _ = self.window[0]
-                if not stat:
-                    self.retransmission += 1
-                    self.transPacket(seq - self.length)
-                for i in range(1,5):
-                    stat, _, _ = self.window[i]
+                if self.retransNum == 0:
+                    stat, seq, _ = self.window[0]
                     if not stat:
-                        _, seq_num, _ = self.window[i - 1]
+                        log_debug(f"retrans {seq}")
+                        self.retransmission += 1
+                        self.transPacket(seq - self.length)
+                else:
+                    stat, _, _ = self.window[self.retransNum]
+                    if not stat:
+                        _, seq_num, _ = self.window[self.retransNum - 1]
+                        log_debug(f"retrans {seq_num}")
                         self.retransmission += 1
                         self.transPacket(seq_num)
+                self.retransNum = (self.retransNum + 1) % self.sw_size
         else :
             seq = self.next_seq
             self.setWindow(seq)
