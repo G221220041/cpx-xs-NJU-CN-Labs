@@ -26,7 +26,7 @@ class Blastee:
         self.recv_pkt = []
     def handle_packet(self, recv: switchyard.llnetbase.ReceivedPacket):
         _, fromIface, packet = recv
-        print(f"\nPkt: {packet}")
+        # print(f"\nPkt: {packet}")
 
         raw_bytes = packet[3].to_bytes()
         seqnum = int.from_bytes(raw_bytes[:4], "big")
@@ -56,7 +56,7 @@ class Blastee:
             payload = raw_bytes[6:14]
             pkt += RawPacketContents(payload)
             print(f"send back ACK seq: {seqnum} and payload: {payload}")
-            self.net.send_packet(fromIface, pkt)
+            self.net.send_packet(fromIface, pkt)   
         
         if len(self.recv_pkt) == self.num:
             print("whole context: ")

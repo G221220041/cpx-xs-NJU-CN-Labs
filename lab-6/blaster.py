@@ -51,13 +51,8 @@ class Blaster:
         self.retransNum = 0
     def handle_packet(self, recv: switchyard.llnetbase.ReceivedPacket):
         _, fromIface, packet = recv
-        # print(f"I got a packet from {fromIface}")
         
-        # if fromIface != "blaster-eht0":
-        #     print("!!!?Error: Unkown prt!")
-        #     self.shutdown()
         raw_bytes = packet[3].to_bytes()
-
         seq_num = int.from_bytes(raw_bytes[:4], "big")
         payload = raw_bytes[4:]
         # print(f"the packet with seqnum {seq_num} and payload {payload}")
@@ -67,8 +62,9 @@ class Blaster:
             # print(f"Test with {self.window[i]}")
             if (status == False) and (pay == payload) and (seq == seq_num):
                 # print("GET IT")
-                self.window[i] = (True, seq, '')
+                self.window[i] = (True, seq, payload)
                 self.send_next = True
+                self.retransNum = 0
                 break
         
         while self.window[0][0] == True:
@@ -150,6 +146,10 @@ class Blaster:
         self.net.shutdown()
         if not final_shut:
             return
+        print("\n-----window------")
+        for i in range(5):
+            print(self.window[i])
+        print("-----window------")
         total_time = int(self.end_time - self.start_time)
         log_info(f"Total time: {total_time}")
         log_info(f"Total retransmission: {self.retransmission}")
@@ -169,7 +169,7 @@ class Blaster:
         pkt += RawPacketContents(seq_num.to_bytes(4, "big"))
         pkt += RawPacketContents(context_length.to_bytes(2, "big"))
         pkt += RawPacketContents(payload)
-        log_debug(f"send packet with seq:{seq_num} and length: {context_length}")
+        # print(f"send packet with seq:{seq_num} and length: {context_length}")
         self.sent_length += context_length
         self.net.send_packet("blaster-eth0", pkt)
     
