@@ -41,6 +41,7 @@ class Router(object):
         # handle arp packet
 
         dst_ip = arp.targetprotoaddr
+        dst_mac = arp.targethwaddr
         interface_list = self.net.interfaces()
 
         for my_interface in interface_list:
